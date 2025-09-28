@@ -1,0 +1,8 @@
+{
+  "extension_name": {
+    "message": "Domain Resetter"
+  },
+  "extension_description": {
+    "message": "Lösche den gesamten Browserverlauf für die aktuelle Domain mit nur einem Klick."
+  }
+}

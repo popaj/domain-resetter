@@ -1,0 +1,8 @@
+{
+  "extension_name": {
+    "message": "Domain Resetter"
+  },
+  "extension_description": {
+    "message": "Delete all browsing history for the current domain with a single click."
+  }
+}

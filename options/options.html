@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Domain Resetter – Settings</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+
+      /* Light Theme Defaults */
+      --bg-color: #ffffff;
+      --text-color: #1a1a1a;
+      --border-color: rgba(0, 0, 0, 0.1);
+      --gold: #f5c84c;
+      --gold-hover: #e0b93f;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #1e1e1e;
+        --text-color: #f5f5f5;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --gold: #f5c84c;
+        --gold-hover: #e0b93f;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 24px;
+      max-width: 600px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.9rem;
+    }
+
+    section {
+      margin-bottom: 0.9rem;
+    }
+
+    .form-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .form-group input[type="checkbox"] {
+      margin-right: 0.6rem;
+      width: 16px;
+      height: 16px;
+    }
+
+    label {
+      font-size: 1rem;
+      user-select: none;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border-color);
+      margin: 1.2rem 0;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: flex-start;
+      margin-top: 1.2rem;
+    }
+
+    button {
+      padding: 0.4rem 0.9rem;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 4px;
+      background-color: var(--gold);
+      color: #000;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      width: auto;
+    }
+
+    button:hover {
+      background-color: var(--gold-hover);
+    }
+
+    button:focus {
+      outline: 2px solid var(--gold-hover);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Extension Settings</h1>
+
+  <section>
+    <div class="form-group">
+      <input type="checkbox" id="showConfirmation" />
+      <label for="showConfirmation">Show confirmation popup</label>
+    </div>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>Data Types to Delete</h2>
+    <div class="form-group">
+      <input type="checkbox" id="history" />
+      <label for="history">Browsing History</label>
+    </div>
+    <div class="form-group">
+      <input type="checkbox" id="cookies" />
+      <label for="cookies">Cookies</label>
+    </div>
+    <div class="form-group">
+      <input type="checkbox" id="cache" />
+      <label for="cache">Cache</label>
+    </div>
+    <div class="form-group">
+      <input type="checkbox" id="localStorage" />
+      <label for="localStorage">Local Storage</label>
+    </div>
+  </section>
+
+  <div class="button-row">
+    <button id="save">Save</button>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

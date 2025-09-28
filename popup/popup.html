@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Confirm History Deletion</title>
+    <style>
+        :root {
+            --primary-bg: #ffffff;
+            --secondary-bg: #f8f8f8;
+            --text-color: #333333;
+            --accent-color: #0066cc;
+            --danger-color: #d32f2f;
+            --hover-danger-color: #b71c1c;
+            --neutral-color: #757575;
+            --hover-neutral-color: #616161;
+            --button-radius: 4px;
+            --padding-small: 8px;
+            --padding-medium: 16px;
+            --font-small: 14px;
+            --font-medium: 16px;
+            --font-large: 18px;
+        }
+
+        /* Global styles to prevent scrolling */
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        }
+
+        /* Center the content vertically and horizontally */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--primary-bg);
+        }
+
+        .popup-container {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 360px;
+            min-width: 280px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        h3 {
+            font-size: var(--font-large);
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: var(--font-small);
+            margin-bottom: 20px;
+        }
+
+        #hostname {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: var(--padding-small) var(--padding-medium);
+            border: none;
+            border-radius: var(--button-radius);
+            cursor: pointer;
+            font-size: var(--font-small);
+            transition: background-color 0.3s ease;
+        }
+
+        #confirm {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        #confirm:hover {
+            background-color: var(--hover-danger-color);
+        }
+
+        #cancel {
+            background-color: var(--neutral-color);
+            color: white;
+        }
+
+        #cancel:hover {
+            background-color: var(--hover-neutral-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .popup-container {
+                padding: 15px;
+            }
+
+            h3 {
+                font-size: 16px;
+            }
+
+            p {
+                font-size: 13px;
+            }
+
+            button {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body role="dialog" aria-labelledby="popup-title">
+    <div class="popup-container">
+        <header>
+            <h3 id="popup-title">Clear History</h3>
+        </header>
+
+        <main>
+            <p>Delete all history for <span id="hostname">this domain</span>?</p>
+            <label for="dontAskAgain">
+                <input type="checkbox" id="dontAskAgain" name="dontAskAgain"> Don't ask again
+            </label>
+        </main>
+
+        <footer class="buttons">
+            <button id="confirm" aria-label="Confirm history deletion">Confirm</button>
+            <button id="cancel" aria-label="Cancel history deletion">Cancel</button>
+        </footer>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
