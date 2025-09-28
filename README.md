@@ -42,4 +42,4 @@ Go to the extension options page to:
 
 ## License
 
-MIT License
+Mozilla Public License Version 2.0
