@@ -47,17 +47,29 @@ browser.pageAction.onClicked.addListener((tab) => {
     browser.storage.local.get("settings").then((data) => {
       const settings = data.settings || { showConfirmation: true };
       if (settings.showConfirmation) {
-        // Open confirmation popup
-        browser.windows.create({
-          url: `popup/popup.html?hostname=${encodeURIComponent(hostname)}`,
-          type: "popup",
-          width: 400,
-          height: 200,
-          focused: true
-        }).then(() => {
-          console.log(`Opened popup for ${hostname}`);
-        }).catch((e) => {
-          console.error("Error opening popup:", e);
+        // Get screen dimensions
+        browser.windows.getCurrent().then((windowInfo) => {
+          const screenWidth = window.screen.width;
+          const screenHeight = window.screen.height;
+          const popupWidth = 400;
+          const popupHeight = 200;
+          const left = Math.round((screenWidth - popupWidth) / 2);
+          const top = Math.round((screenHeight - popupHeight) / 2);
+
+          // Open confirmation popup
+          browser.windows.create({
+            url: `popup/popup.html?hostname=${encodeURIComponent(hostname)}`,
+            type: "popup",
+            width: popupWidth,
+            height: popupHeight,
+            left: left,
+            top: top,
+            focused: true
+          }).then(() => {
+            console.log(`Opened popup for ${hostname} at position left=${left}, top=${top}`);
+          }).catch((e) => {
+            console.error("Error opening popup:", e);
+          });
         });
       } else {
         // Delete history immediately
