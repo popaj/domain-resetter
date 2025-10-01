@@ -6,7 +6,17 @@
   "description": "__MSG_extension_description__",
   "browser_specific_settings": {
     "gecko": {
-      "id": "history@domain-resetter"
+      "id": "history@domain-resetter",
+      "data_collection_permissions": {
+        "required": [
+          "browsingActivity",
+          "websiteContent",
+          "websiteActivity"
+        ],
+        "optional": [
+          "technicalAndInteraction"
+        ]
+      }
     }
   },
   "permissions": [
