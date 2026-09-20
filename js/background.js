@@ -110,48 +110,98 @@ browser.runtime.onMessage.addListener((message, sender) => {
 async function deleteHistoryForDomain(hostname) {
   try {
     const settings = (await browser.storage.local.get("settings")).settings;
-    const dataTypes = settings.dataTypes || {
+    const types = settings.dataTypes || {
       history: true,
       cookies: true,
       cache: true,
       localStorage: true
     };
 
-    // Delete browsing history
-    if (dataTypes.history) {
-      const historyItems = await browser.history.search({ text: hostname });
-      for (const item of historyItems) {
-        if (new URL(item.url).hostname === hostname) {
-          await browser.history.deleteUrl({ url: item.url });
-        }
+    // ✅ 1. Clear cookies/cache/localStorage (once, correctly)
+    const dataToRemove = {};
+    if (types.cookies)   dataToRemove.cookies = true;
+    if (types.cache)     dataToRemove.cache = true;
+    if (types.localStorage) dataToRemove.localStorage = true;
+
+    if (Object.keys(dataToRemove).length > 0) {
+      try {
+        await browser.browsingData.remove({
+          hostnames: [hostname],
+          since: 0
+        }, dataToRemove);
+        console.log(`✅ Cleared cookies/cache/LS for ${hostname}`);
+      } catch (e) {
+        console.warn("Hostname clearance failed, falling back to full clear:", e.message);
+        if (types.cache)     await browser.browsingData.removeCache({ since: 0 });
+        if (types.cookies)   await browser.browsingData.removeCookies({ since: 0 });
       }
-      console.log(`Deleted history for ${hostname}`);
     }
 
-    // Delete cookies, cache, localStorage
-    const removalOptions = { hostnames: [hostname] };
-    if (dataTypes.cookies) {
-      await browser.browsingData.removeCookies(removalOptions);
-      console.log(`Deleted cookies for ${hostname}`);
-    }
-    if (dataTypes.cache) {
-      await browser.browsingData.removeCache(removalOptions);
-      console.log(`Deleted cache for ${hostname}`);
-    }
-    if (dataTypes.localStorage) {
-      await browser.browsingData.removeLocalStorage(removalOptions);
-      console.log(`Deleted localStorage for ${hostname}`);
+    // ✅ 2. Clear history (only if requested)
+    if (types.history) {
+      try {
+        const now = Date.now();
+        const pastMonth = now - 30 * 24 * 60 * 60 * 1000;
+
+        const historyItems = await browser.history.search({
+          text: hostname,
+          startTime: pastMonth,
+          maxResults: 500
+        });
+
+        console.log(`Found ${historyItems.length} history items matching "${hostname}"`);
+
+        let deletedCount = 0;
+        for (const item of historyItems) {
+          try {
+            const urlObj = new URL(item.url);
+            if (urlObj.hostname.toLowerCase() === hostname.toLowerCase()) {
+              await browser.history.deleteUrl({ url: item.url });
+              console.log(`✅ Deleted history for ${item.url}`);
+              deletedCount++;
+            } else {
+              console.warn(`Skipped: "${item.title}" (${item.url}) — hostname mismatch`);
+            }
+          } catch (e) {
+            console.warn(`Skipping malformed URL: ${item.url}`, e);
+          }
+        }
+
+        // ✅ FIXED: Log/notify AFTER loop, not during
+        console.log(`✅ Deleted ${deletedCount} history entries for ${hostname}`);
+        
+        if (deletedCount === 0 && historyItems.length > 0) {
+          console.warn(`⚠️ Found ${historyItems.length} items, but none matched hostname "${hostname}"`);
+          browser.notifications.create({
+            type: "basic",
+            iconUrl: "icons/icon-128.png",
+            title: "No Matching History",
+            message: `Found ${historyItems.length} items, but none matched "${hostname}". Try visiting first!`
+          });
+        } else if (deletedCount === 0) {
+          console.warn("No history items found at all.");
+        }
+
+      } catch (e) {
+        console.error("History search failed:", e);
+        throw new Error(`Failed to clear history: ${e.message}`);
+      }
     }
 
-    // Show success notification
-    browser.notifications.create({
-      type: "basic",
-      iconUrl: "icons/icon-128.png",
-      title: "History Cleared",
-      message: `All selected history for ${hostname} has been cleared.`
-    });
+    // ✅ 3. Final notification (success or partial success)
+    if (!types.cookies && !types.cache && !types.localStorage && !types.history) {
+      console.warn("No data types selected — nothing to clear.");
+    } else {
+      browser.notifications.create({
+        type: "basic",
+        iconUrl: "icons/icon-128.png",
+        title: "Clearing Complete",
+        message: `Cleared for ${hostname}: history (${types.history ? '✅' : '❌'}), cookies/cache/LS (${types.cookies || types.cache || types.localStorage ? '✅' : '❌'})`
+      });
+    }
+
   } catch (e) {
-    console.error("Error deleting history:", e);
+    console.error("Error deleting history/data:", e);
     browser.notifications.create({
       type: "basic",
       iconUrl: "icons/icon-128.png",
