@@ -25,6 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
           action: "deleteHistory",
           hostname,
           clearInCurrentTab: true
+        }).then(() => {
+          window.close();
+        }).catch(e => {
+          // show error
         });
         console.log(`Sent deleteHistory message for ${hostname}`);
         window.close();

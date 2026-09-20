@@ -106,6 +106,12 @@ browser.runtime.onMessage.addListener((message, sender) => {
   }
 });
 
+function formatDomainList(hostnames) {
+  if (hostnames.length === 1) return hostnames[0];
+  const last = hostnames.pop();
+  return `${hostnames.join(', ')} & ${last}`;
+}
+
 // Function to delete history for a domain
 async function deleteHistoryForDomain(hostname) {
   try {
@@ -117,27 +123,43 @@ async function deleteHistoryForDomain(hostname) {
       localStorage: true
     };
 
-    // ✅ 1. Clear cookies/cache/localStorage (once, correctly)
+    // ✅ 1. Get hostnames to clear (current + tld+1)
+    const hostnamesToClear = new Set([hostname]);
+    try {
+      // Only for valid domains (not localhost, IPs, etc.)
+      if (hostname.includes('.') && !/^\d+(\.\d+)*$/.test(hostname)) {
+        const parts = hostname.split('.');
+        // For 'www.aliexpress.com' → ['aliexpress', 'com'] → 'aliexpress.com'
+        const tldPlusOne = parts.slice(-2).join('.');
+        if (tldPlusOne !== hostname) hostnamesToClear.add(tldPlusOne);
+      }
+    } catch (e) {
+      // Ignore parsing errors — fallback to just the given hostname
+    }
+
+    const hostnameArray = Array.from(hostnamesToClear);
+
+    // ✅ 2. Clear cookies/cache/localStorage (with tld+1)
     const dataToRemove = {};
-    if (types.cookies)   dataToRemove.cookies = true;
-    if (types.cache)     dataToRemove.cache = true;
+    if (types.cookies) dataToRemove.cookies = true;
+    if (types.cache) dataToRemove.cache = true;
     if (types.localStorage) dataToRemove.localStorage = true;
 
     if (Object.keys(dataToRemove).length > 0) {
       try {
         await browser.browsingData.remove({
-          hostnames: [hostname],
+          hostnames: hostnameArray,
           since: 0
         }, dataToRemove);
-        console.log(`✅ Cleared cookies/cache/LS for ${hostname}`);
+        console.log(`✅ Cleared cookies/cache/LS for ${hostnameArray.join(', ')}`);
       } catch (e) {
         console.warn("Hostname clearance failed, falling back to full clear:", e.message);
-        if (types.cache)     await browser.browsingData.removeCache({ since: 0 });
-        if (types.cookies)   await browser.browsingData.removeCookies({ since: 0 });
+        if (types.cache) await browser.browsingData.removeCache({ since: 0 });
+        if (types.cookies) await browser.browsingData.removeCookies({ since: 0 });
       }
     }
 
-    // ✅ 2. Clear history (only if requested)
+    // ✅ 3. Clear history
     if (types.history) {
       try {
         const now = Date.now();
@@ -159,17 +181,14 @@ async function deleteHistoryForDomain(hostname) {
               await browser.history.deleteUrl({ url: item.url });
               console.log(`✅ Deleted history for ${item.url}`);
               deletedCount++;
-            } else {
-              console.warn(`Skipped: "${item.title}" (${item.url}) — hostname mismatch`);
             }
           } catch (e) {
             console.warn(`Skipping malformed URL: ${item.url}`, e);
           }
         }
 
-        // ✅ FIXED: Log/notify AFTER loop, not during
         console.log(`✅ Deleted ${deletedCount} history entries for ${hostname}`);
-        
+
         if (deletedCount === 0 && historyItems.length > 0) {
           console.warn(`⚠️ Found ${historyItems.length} items, but none matched hostname "${hostname}"`);
           browser.notifications.create({
@@ -178,8 +197,6 @@ async function deleteHistoryForDomain(hostname) {
             title: "No Matching History",
             message: `Found ${historyItems.length} items, but none matched "${hostname}". Try visiting first!`
           });
-        } else if (deletedCount === 0) {
-          console.warn("No history items found at all.");
         }
 
       } catch (e) {
@@ -188,17 +205,13 @@ async function deleteHistoryForDomain(hostname) {
       }
     }
 
-    // ✅ 3. Final notification (success or partial success)
-    if (!types.cookies && !types.cache && !types.localStorage && !types.history) {
-      console.warn("No data types selected — nothing to clear.");
-    } else {
-      browser.notifications.create({
-        type: "basic",
-        iconUrl: "icons/icon-128.png",
-        title: "Clearing Complete",
-        message: `Cleared for ${hostname}: history (${types.history ? '✅' : '❌'}), cookies/cache/LS (${types.cookies || types.cache || types.localStorage ? '✅' : '❌'})`
-      });
-    }
+    // ✅ 4. Final notification
+    browser.notifications.create({
+      type: "basic",
+      iconUrl: "icons/icon-128.png",
+      title: "Cleared for Domain Chain",
+      message: `Cleared for ${formatDomainList(hostnameArray)}`
+    });
 
   } catch (e) {
     console.error("Error deleting history/data:", e);
