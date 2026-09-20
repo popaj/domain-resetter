@@ -51,7 +51,7 @@ browser.pageAction.onClicked.addListener((tab) => {
         browser.windows.getCurrent().then((windowInfo) => {
           const screenHeight = window.screen.height;
           const popupWidth = 400;
-          const popupHeight = 200;
+          const popupHeight = 260;
           const left = Math.round(windowInfo.left + (windowInfo.width - popupWidth) / 2);
           const top = Math.round(windowInfo.top + (windowInfo.height - popupHeight) / 2);
 

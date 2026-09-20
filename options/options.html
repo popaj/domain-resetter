@@ -60,6 +60,11 @@
       height: 16px;
     }
 
+    .form-group input[type="checkbox"]:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 2px;
+    }
+
     label {
       font-size: 1rem;
       user-select: none;
@@ -75,6 +80,12 @@
       display: flex;
       justify-content: flex-start;
       margin-top: 1.2rem;
+    }
+
+    .info-note {
+      font-size: 0.85rem;
+      color: var(--neutral-color, #757575);
+      margin-top: 0.4rem;
     }
 
     button {
@@ -93,9 +104,15 @@
       background-color: var(--gold-hover);
     }
 
-    button:focus {
-      outline: 2px solid var(--gold-hover);
+    button:focus-visible {
+      outline: 3px solid var(--gold-hover);
       outline-offset: 2px;
+    }
+
+    /* Success state for Save button */
+    #save.success {
+      background-color: #4caf50;
+      color: white;
     }
   </style>
 </head>
@@ -127,8 +144,15 @@
     </div>
     <div class="form-group">
       <input type="checkbox" id="localStorage" />
-      <label for="localStorage">Local Storage</label>
+      <label for="localStorage">Local Storage (current tab only)</label>
     </div>
+
+    <!-- Accuracy & transparency -->
+    <p class="info-note">
+      Note: 
+      LocalStorage/sessionStorage are cleared only for the currently active tab. 
+      Cookies, cache, and history include parent domains (e.g., clearing "www.example.com" also clears "example.com").
+    </p>
   </section>
 
   <div class="button-row">

@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Confirm History Deletion</title>
+    <title>Reset This Domain?</title>
     <style>
         :root {
             --primary-bg: #ffffff;
@@ -25,7 +24,8 @@
         }
 
         /* Global styles to prevent scrolling */
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
             overflow: hidden;
@@ -110,6 +110,11 @@
             background-color: var(--hover-neutral-color);
         }
 
+        button:focus-visible {
+            outline: 3px solid #0066cc;
+            outline-offset: 2px;
+        }
+
         /* Responsive Design */
         @media (max-width: 480px) {
             .popup-container {
@@ -130,22 +135,28 @@
         }
     </style>
 </head>
+
 <body role="dialog" aria-labelledby="popup-title">
     <div class="popup-container">
         <header>
-            <h3 id="popup-title">Clear History</h3>
+            <h3 id="popup-title">Reset This Domain?</h3>
         </header>
 
         <main>
-            <p>Delete all history for <span id="hostname">this domain</span>?</p>
+            <p id="popup-desc">
+                Delete all history and cookies for
+                <span id="hostname">this domain</span>
+                <strong>and its parent domains</strong> (e.g., to log you out).
+            </p>
             <label for="dontAskAgain">
-                <input type="checkbox" id="dontAskAgain" name="dontAskAgain"> Don't ask again
+                <input type="checkbox" id="dontAskAgain" name="dontAskAgain">
+                Don't ask again
             </label>
         </main>
 
         <footer class="buttons">
-            <button id="confirm" aria-label="Confirm history deletion">Confirm</button>
-            <button id="cancel" aria-label="Cancel history deletion">Cancel</button>
+            <button id="confirm" aria-label="Confirm domain reset">Confirm</button>
+            <button id="cancel" aria-label="Cancel domain reset">Cancel</button>
         </footer>
     </div>
 
