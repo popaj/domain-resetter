@@ -49,12 +49,11 @@ browser.pageAction.onClicked.addListener((tab) => {
       if (settings.showConfirmation) {
         // Get screen dimensions
         browser.windows.getCurrent().then((windowInfo) => {
-          const screenWidth = window.screen.width;
           const screenHeight = window.screen.height;
           const popupWidth = 400;
           const popupHeight = 200;
-          const left = Math.round((screenWidth - popupWidth) / 2);
-          const top = Math.round((screenHeight - popupHeight) / 2);
+          const left = Math.round(windowInfo.left + (windowInfo.width - popupWidth) / 2);
+          const top = Math.round(windowInfo.top + (windowInfo.height - popupHeight) / 2);
 
           // Open confirmation popup
           browser.windows.create({
