@@ -22,7 +22,6 @@
   "permissions": [
     "activeTab",
     "history",
-    "cookies",
     "browsingData",
     "storage",
     "tabs",
