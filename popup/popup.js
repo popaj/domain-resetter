@@ -21,7 +21,11 @@ document.addEventListener("DOMContentLoaded", () => {
           console.log("Confirmation popup disabled");
         }
         // Send message to background to delete history
-        await browser.runtime.sendMessage({ action: "deleteHistory", hostname });
+        await browser.runtime.sendMessage({
+          action: "deleteHistory",
+          hostname,
+          clearInCurrentTab: true
+        });
         console.log(`Sent deleteHistory message for ${hostname}`);
         window.close();
       } catch (e) {

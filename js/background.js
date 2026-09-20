@@ -81,9 +81,28 @@ browser.pageAction.onClicked.addListener((tab) => {
 });
 
 // Handle messages from popup
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender) => {
   if (message.action === "deleteHistory" && message.hostname) {
+    // only for safe protocols http(s), avoid for chrome://, file://, about:, etc.
+    let shouldClearStorage = false;
+    
+    try {
+      const url = new URL(sender.tab?.url || "");
+      shouldClearStorage = (
+        message.clearInCurrentTab &&
+        (url.protocol === "http:" || url.protocol === "https:")
+      );
+    } catch (e) {
+      shouldClearStorage = false;
+    }
+
+    if (shouldClearStorage && sender.tab?.id) {
+      browser.tabs.sendMessage(sender.tab.id, { action: "clearStorage" }).catch(() => {});
+    }
+
     deleteHistoryForDomain(message.hostname);
+  } else if (message.action === "storageCleared") {
+    console.log(`Content script cleared storage for ${message.origin}`);
   }
 });
 
