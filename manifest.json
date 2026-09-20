@@ -30,6 +30,17 @@
   "background": {
     "scripts": ["js/background.js"]
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "js/content_delete.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
   "page_action": {
     "default_icon": "icons/icon-128.png",
     "default_title": "Clear history for this domain",
