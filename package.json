@@ -13,6 +13,7 @@
     "release:major": "npm version major && npm run package"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "web-ext": "^10.7.0"
   }
 }
