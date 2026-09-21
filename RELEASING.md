@@ -1,85 +1,124 @@
-Releasing Domain Resetter
+I would **not document that exact workflow**, because you're bumping the version twice:
 
-This document describes the release process for Domain Resetter.
+```
+npm version minor
+npm run package
+npm run release:minor
+```
 
-Versioning
+ Since `release:minor` already runs `npm version minor`, this would effectively go:
 
-The project uses package.json as the single source of truth for the extension version.
+```
+1.2.0 → npm version minor → 1.3.0
+                 │
+                 ▼
+             npm package
+                 │
+                 ▼
+release:minor → 1.4.0
+```
 
-The version is automatically injected into the generated dist/manifest.json during the build.
+ So you'd accidentally package **1.3.0** while tagging **1.4.0**.
 
-Developers should never manually change the version in src/manifest.json.
+ ## Recommended developer workflow
 
-Release types
+ Given the setup we've built, I'd document this in `CONTRIBUTING.md` or a dedicated `RELEASING.md`.
 
-Use the appropriate npm script depending on the type of release:
+ I prefer `RELEASING.md` because release instructions tend to become more detailed over time.
 
+ ### `RELEASING.md`
+
+ RELEASING.md
+
+# Releasing Domain Resetter
+
+ This document describes the release process for Domain Resetter.
+
+ ## Versioning
+
+ The project uses `package.json` as the single source of truth for the extension version.
+
+ The version is automatically injected into the generated `dist/manifest.json` during the build.
+
+ Developers should **never manually change the version in `src/manifest.json`**.
+
+ ## Release types
+
+ Use the appropriate npm script depending on the type of release:
+
+```
 npm run release:patch
 npm run release:minor
 npm run release:major
+```
 
+ These commands:
 
-These commands:
+ 1. Update the version in `package.json`.
+2. Update `package-lock.json`.
+3. Create a Git commit for the version change.
+4. Create the corresponding Git tag.
+5. Build and package the extension.
+6. Run extension validation before packaging.
 
-Update the version in package.json.
+ For example, for a minor release:
 
-Update package-lock.json.
-
-Create a Git commit for the version change.
-
-Create the corresponding Git tag.
-
-Build and package the extension.
-
-Run extension validation before packaging.
-
-For example, for a minor release:
-
+```
 npm run release:minor
+```
 
+ If the current version is:
 
-If the current version is:
-
+```
 1.2.0
+```
 
+ the command will create:
 
-the command will create:
-
+```
 1.3.0
+```
 
+ and the corresponding Git tag:
 
-and the corresponding Git tag:
-
+```
 v1.3.0
+```
 
-Publishing the release
+ ## Publishing the release
 
-After the release command completes successfully, push the commit and tag:
+ After the release command completes successfully, push the commit and tag:
 
+```
 git push origin main --follow-tags
+```
 
+ The complete minor-release workflow is therefore:
 
-The complete minor-release workflow is therefore:
-
+```
 npm run release:minor
 git push origin main --follow-tags
+```
 
+ For a patch release:
 
-For a patch release:
-
+```
 npm run release:patch
 git push origin main --follow-tags
+```
 
+ For a major release:
 
-For a major release:
-
+```
 npm run release:major
 git push origin main --follow-tags
+```
 
-What happens during a release
+ ## What happens during a release
 
-The release process follows this flow:
+ The release process follows this flow:
 
+```
 package.json
     │
     │ npm version minor
@@ -111,83 +150,102 @@ package.json
                          │
                          ▼
               domain_resetter-1.3.0.zip
+```
 
-Important: do not manually edit versions
+ ## Important: do not manually edit versions
 
-Do not manually change the version in:
+ Do not manually change the version in:
 
+```
 src/manifest.json
+```
 
+ Do not manually create Git tags for normal releases.
 
-Do not manually create Git tags for normal releases.
+ Do not run `npm version` separately before running a `release:*` script.
 
-Do not run npm version separately before running a release:* script.
+ Use:
 
-Use:
-
+```
 npm run release:minor
+```
 
+ instead of:
 
-instead of:
-
+```
 npm version minor
 npm run package
 npm run release:minor
+```
 
+ The latter would increment the version twice.
 
-The latter would increment the version twice.
+ ## Before releasing
 
-Before releasing
+ Make sure your working tree is clean:
 
-Make sure your working tree is clean:
-
+```
 git status
+```
 
+ You should have no unintended uncommitted changes.
 
-You should have no unintended uncommitted changes.
+ Then run the appropriate release command:
 
-Then run the appropriate release command:
-
+```
 npm run release:minor
+```
 
+ Verify the generated artifact in:
 
-Verify the generated artifact in:
-
+```
 web-ext-artifacts/
+```
 
+ If everything looks correct, push the release:
 
-If everything looks correct, push the release:
-
+```
 git push origin main --follow-tags
+```
 
-Release checklist
+ ## Release checklist
 
- Working tree is clean.
+ - [ ] Working tree is clean.
+- [ ] Changes are committed.
+- [ ] Correct release type selected.
+- [ ] `npm run release:patch`, `release:minor`, or `release:major` completes successfully.
+- [ ] Generated extension artifact has the expected version.
+- [ ] Git tag has the expected version.
+- [ ] Commit and tag are pushed with `git push origin main --follow-tags`.
 
- Changes are committed.
+ ## Versioning rules
 
- Correct release type selected.
+ Use a **patch** release for backwards-compatible bug fixes:
 
- npm run release:patch, release:minor, or release:major completes successfully.
-
- Generated extension artifact has the expected version.
-
- Git tag has the expected version.
-
- Commit and tag are pushed with git push origin main --follow-tags.
-
-Versioning rules
-
-Use a patch release for backwards-compatible bug fixes:
-
+```
 npm run release:patch
+```
 
+ Use a **minor** release for backwards-compatible features:
 
-Use a minor release for backwards-compatible features:
-
+```
 npm run release:minor
+```
 
+ Use a **major** release for breaking changes:
 
-Use a major release for breaking changes:
-
+```
 npm run release:major
+```
+
+ One important caveat: **this assumes you've updated your `package.json` scripts as discussed**, so that `release:*` actually performs the packaging.
+
+ I'd also put a very short section in `README.md` pointing developers to it:
+
+```
+## Releases
+
+See [RELEASING.md](RELEASING.md) for the release process.
+```
+
+ That way `README.md` stays focused on using/developing the extension, while `RELEASING.md` becomes the authoritative place for the release procedure.
