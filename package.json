@@ -4,6 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "lint": "npm run build && web-ext lint --source-dir dist",
+    "dev": "npm run build && web-ext run --source-dir dist",
+    "package": "npm run lint && web-ext build --source-dir dist --artifacts-dir web-ext-artifacts"
+  },
+  "devDependencies": {
+    "web-ext": "^10.6.0"
   }
 }
