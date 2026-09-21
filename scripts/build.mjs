@@ -1,15 +1,58 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { transform } from "esbuild";
 
-const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const SRC_DIR = join(ROOT, "src");
 const DIST_DIR = join(ROOT, "dist");
+
+async function processDirectory(srcDir, distDir) {
+  await mkdir(distDir, { recursive: true });
+
+  const entries = await readdir(srcDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = join(srcDir, entry.name);
+    const distPath = join(distDir, entry.name);
+
+    if (entry.isDirectory()) {
+      await processDirectory(srcPath, distPath);
+      continue;
+    }
+
+    if (entry.name.endsWith(".js")) {
+      const source = await readFile(srcPath, "utf8");
+
+      const result = await transform(source, {
+        loader: "js",
+        minify: true,
+        target: "es2020"
+      });
+
+      await writeFile(distPath, result.code);
+      continue;
+    }
+
+    if (entry.name.endsWith(".css")) {
+      const source = await readFile(srcPath, "utf8");
+
+      const result = await transform(source, {
+        loader: "css",
+        minify: true
+      });
+
+      await writeFile(distPath, result.code);
+      continue;
+    }
+
+    await cp(srcPath, distPath);
+  }
+}
 
 async function build() {
   console.log("🔨 Building Domain Resetter...\n");
 
-  // Read the project version from package.json.
   const packageJson = JSON.parse(
     await readFile(join(ROOT, "package.json"), "utf8")
   );
@@ -22,20 +65,14 @@ async function build() {
 
   console.log(`📌 Version: ${version}`);
 
-  // Always start from a clean distribution directory.
   console.log("🧹 Cleaning dist/...");
   await rm(DIST_DIR, { recursive: true, force: true });
 
-  // Create dist/.
   await mkdir(DIST_DIR, { recursive: true });
 
-  // Copy the complete extension source tree.
-  console.log("📦 Copying extension files...");
-  await cp(SRC_DIR, DIST_DIR, {
-    recursive: true,
-  });
+  console.log("📦 Copying and processing extension files...");
+  await processDirectory(SRC_DIR, DIST_DIR);
 
-  // Inject package.json version into the generated manifest.
   const manifestPath = join(DIST_DIR, "manifest.json");
 
   const manifest = JSON.parse(
@@ -51,6 +88,7 @@ async function build() {
   );
 
   console.log(`📝 Manifest version: ${version}`);
+  console.log("🗜️  JavaScript and CSS minified automatically.");
 
   console.log("\n✅ Build complete.");
   console.log(`📁 Output: ${DIST_DIR}`);
