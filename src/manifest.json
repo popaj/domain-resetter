@@ -8,14 +8,7 @@
     "gecko": {
       "id": "history@domain-resetter",
       "data_collection_permissions": {
-        "required": [
-          "browsingActivity",
-          "websiteContent",
-          "websiteActivity"
-        ],
-        "optional": [
-          "technicalAndInteraction"
-        ]
+        "required": ["none"]
       }
     }
   },
