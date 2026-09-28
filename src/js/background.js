@@ -18,7 +18,7 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       if (url.protocol === "http:" || url.protocol === "https:") {
         browser.pageAction.setTitle({
           tabId: tabId,
-          title: `Clear history for ${url.hostname}`
+          title: browser.i18n.getMessage("pageAction_title", url.hostname)
         });
         browser.pageAction.show(tabId);
         console.log(`Page action shown for ${url.hostname}`);

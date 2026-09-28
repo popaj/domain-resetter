@@ -4,5 +4,13 @@
   },
   "extension_description": {
     "message": "Fshi të gjithë historinë e shfletimit të domenit aktual vetëm me një klikim."
+  },
+  "pageAction_title": {
+    "message": "Pastro historinë për $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
   }
 }

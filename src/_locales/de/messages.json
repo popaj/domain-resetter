@@ -4,5 +4,13 @@
   },
   "extension_description": {
     "message": "Lösche den gesamten Browserverlauf für die aktuelle Domain mit nur einem Klick."
+  },
+  "pageAction_title": {
+    "message": "Verlauf für $1 löschen",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
   }
 }

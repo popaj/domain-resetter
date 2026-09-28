@@ -4,5 +4,13 @@
   },
   "extension_description": {
     "message": "Delete all browsing history for the current domain with a single click."
+  },
+  "pageAction_title": {
+    "message": "Clear history for $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
   }
 }
