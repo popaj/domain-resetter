@@ -140,18 +140,32 @@
     </div>
     <div class="form-group">
       <input type="checkbox" id="cache" />
-      <label for="cache">Cache</label>
+      <label for="cache">HTTP Cache (browsingData)</label>
     </div>
     <div class="form-group">
       <input type="checkbox" id="localStorage" />
       <label for="localStorage">Local Storage (current tab only)</label>
     </div>
+    <div class="form-group">
+      <input type="checkbox" id="indexedDB" />
+      <label for="indexedDB">IndexedDB (global)</label>
+    </div>
+    <div class="form-group">
+      <input type="checkbox" id="cacheStorage" />
+      <label for="cacheStorage">Cache Storage (Web API, current tab only)</label>
+    </div>
+    <div class="form-group">
+      <input type="checkbox" id="sessionStorage" />
+      <label for="sessionStorage">Session Storage</label>
+    </div>
 
     <!-- Accuracy & transparency -->
     <p class="info-note">
-      Note: 
-      LocalStorage/sessionStorage are cleared only for the currently active tab. 
-      Cookies, cache, and history include parent domains (e.g., clearing "www.example.com" also clears "example.com").
+      <strong>How clearing works:</strong><br>
+      · Cookies, IndexedDB: Cleared globally for the domain chain (e.g., <em>example.com</em> also clears <em>www.example.com</em>).<br>
+      · HTTP Cache: Cleared globally.<br>
+      · Service Workers: Cleared globally (via Firefox's browsingData).<br>
+      · Cache Storage & SessionStorage: Cleared <em>per-site in the active tab</em> (via Web APIs, not Firefox's browsingData API).
     </p>
   </section>
 
@@ -159,6 +173,7 @@
     <button id="save">Save</button>
   </div>
 
+  <script src="js/defaults.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

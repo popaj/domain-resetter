@@ -4,6 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const hostname = params.get("hostname") || "unknown domain";
     document.getElementById("hostname").textContent = hostname;
+
+    // Load defaults for fallback & consistency
+    const DEFAULTS = window.DEFAULT_SETTINGS;
+
     if (!/^[\w.-]+$/.test(hostname)) {
       console.error("Invalid hostname:", hostname);
       document.getElementById("hostname").textContent = "invalid domain";
@@ -15,7 +19,13 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const dontAskAgain = document.getElementById("dontAskAgain").checked;
         if (dontAskAgain) {
-          const settings = (await browser.storage.local.get("settings")).settings || {};
+          // Merge saved + defaults: prioritize user's choices
+          const saved = await browser.storage.local.get("settings");
+          const settings = {
+            ...DEFAULTS,
+            ...(saved.settings || {})
+          };
+
           settings.showConfirmation = false;
           await browser.storage.local.set({ settings });
           console.log("Confirmation popup disabled");
@@ -34,12 +44,17 @@ document.addEventListener("DOMContentLoaded", () => {
         window.close();
       } catch (e) {
         console.error("Error in confirm action:", e);
-        browser.notifications.create({
-          type: "basic",
-          iconUrl: "/icons/icon-128.png",
-          title: "Error",
-          message: `Failed to process request: ${e.message}`
-        });
+        // popup uses relative paths, not leading "/"
+        try {
+          await browser.notifications.create({
+            type: "basic",
+            iconUrl: "icons/icon-128.png",  // relative to popup origin
+            title: "Error",
+            message: `Failed: ${e.message}`
+          });
+        } catch (notifyErr) {
+          console.warn("Notification failed:", notifyErr);
+        }
       }
     });
 

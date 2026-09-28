@@ -1,10 +1,42 @@
-// Clear localStorage and sessionStorage for the current origin
+// Clear for the current origin
 try {
+  // Clear localStorage
   if (window.localStorage) window.localStorage.clear();
-} catch (e) {}
+} catch (e) {
+  console.warn("Failed to clear localStorage:", e);
+}
+
 try {
+  // Clear sessionStorage
   if (window.sessionStorage) window.sessionStorage.clear();
-} catch (e) {}
+} catch (e) {
+  console.warn("Failed to clear sessionStorage:", e);
+}
+
+try {
+  // Clear Cache Storage
+  if (window.caches) {
+    window.caches.keys().then(names => {
+      names.forEach(name => {
+        window.caches.delete(name).catch(e => console.warn("Failed to delete cache:", e));
+      });
+    });
+  }
+} catch (e) {
+  console.warn("Failed to clear Cache Storage:", e);
+}
+
+try {
+  // Clear IndexedDB (this requires more complex handling in background)
+  if ('indexedDB' in window) {
+    browser.runtime.sendMessage({
+      action: "clearIndexedDB",
+      origin: location.origin
+    });
+  }
+} catch (e) {
+  console.warn("Failed to clear IndexedDB:", e);
+}
 
 // Send confirmation back to background
 browser.runtime.sendMessage({ action: "storageCleared", origin: location.origin });

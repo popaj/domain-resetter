@@ -21,7 +21,7 @@
     "notifications"
   ],
   "background": {
-    "scripts": ["js/background.js"]
+    "scripts": ["js/defaults.js", "js/background.js"]
   },
   "content_scripts": [
     {

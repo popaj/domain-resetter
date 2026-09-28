@@ -3,13 +3,7 @@ browser.storage.local.get("settings").then((data) => {
   if (!data.settings) {
     browser.storage.local.set({
       settings: {
-        showConfirmation: true,
-        dataTypes: {
-          history: true,
-          cookies: true,
-          cache: true,
-          localStorage: true
-        }
+        ...window.DEFAULT_SETTINGS
       }
     });
     console.log("Initialized default settings");
@@ -45,11 +39,10 @@ browser.pageAction.onClicked.addListener((tab) => {
     const url = new URL(tab.url);
     const hostname = url.hostname;
     browser.storage.local.get("settings").then((data) => {
-      const settings = data.settings || { showConfirmation: true };
+      const settings = data.settings || window.DEFAULT_SETTINGS;
       if (settings.showConfirmation) {
         // Get screen dimensions
         browser.windows.getCurrent().then((windowInfo) => {
-          const screenHeight = window.screen.height;
           const popupWidth = 400;
           const popupHeight = 260;
           const left = Math.round(windowInfo.left + (windowInfo.width - popupWidth) / 2);
@@ -97,7 +90,9 @@ browser.runtime.onMessage.addListener((message, sender) => {
     }
 
     if (shouldClearStorage && sender.tab?.id) {
-      browser.tabs.sendMessage(sender.tab.id, { action: "clearStorage" }).catch(() => {});
+      browser.tabs.sendMessage(sender.tab.id, { action: "clearStorage" }).catch(e => {
+        console.warn(`Content script failed to clear storage: ${e.message}`);
+      });
     }
 
     deleteHistoryForDomain(message.hostname);
@@ -115,15 +110,12 @@ function formatDomainList(hostnames) {
 // Function to delete history for a domain
 async function deleteHistoryForDomain(hostname) {
   try {
-    const settings = (await browser.storage.local.get("settings")).settings;
-    const types = settings.dataTypes || {
-      history: true,
-      cookies: true,
-      cache: true,
-      localStorage: true
-    };
+    const savedSettings = await browser.storage.local.get("settings");
+    const settings = savedSettings.settings || window.DEFAULT_SETTINGS;
+    // Use the merged settings.dataTypes directly
+    const types = settings.dataTypes || {};
 
-    // ✅ 1. Get hostnames to clear (current + tld+1)
+    // 1. Get hostnames to clear (current + tld+1)
     const hostnamesToClear = new Set([hostname]);
     try {
       // Only for valid domains (not localhost, IPs, etc.)
@@ -139,11 +131,16 @@ async function deleteHistoryForDomain(hostname) {
 
     const hostnameArray = Array.from(hostnamesToClear);
 
-    // ✅ 2. Clear cookies/cache/localStorage (with tld+1)
+    // 2. Clear cookies/cache/localStorage (with tld+1)
     const dataToRemove = {};
+    // Note: sessionStorage & cacheStorage are NOT supported by browsingData.remove()
+    // They're handled separately in content scripts (only current tab)
     if (types.cookies) dataToRemove.cookies = true;
     if (types.cache) dataToRemove.cache = true;
     if (types.localStorage) dataToRemove.localStorage = true;
+    // sessionStorage handled by content script → not in browsingData
+    if (types.indexedDB) dataToRemove.indexedDB = true; // NEW: Add IndexedDB support
+    // cacheStorage handled by content script → not in browsingData
 
     if (Object.keys(dataToRemove).length > 0) {
       try {
@@ -151,7 +148,7 @@ async function deleteHistoryForDomain(hostname) {
           hostnames: hostnameArray,
           since: 0
         }, dataToRemove);
-        console.log(`✅ Cleared cookies/cache/LS for ${hostnameArray.join(', ')}`);
+        console.log(`✅ Cleared cookies/cache/LS/sessionStorage/indexedDB/cacheStorage for ${hostnameArray.join(', ')}`);
       } catch (e) {
         console.warn("Hostname clearance failed, falling back to full clear:", e.message);
         if (types.cache) await browser.browsingData.removeCache({ since: 0 });
@@ -159,7 +156,7 @@ async function deleteHistoryForDomain(hostname) {
       }
     }
 
-    // ✅ 3. Clear history
+    // 3. Clear history
     if (types.history) {
       try {
         const now = Date.now();
@@ -205,7 +202,7 @@ async function deleteHistoryForDomain(hostname) {
       }
     }
 
-    // ✅ 4. Final notification
+    // 4. Final notification
     browser.notifications.create({
       type: "basic",
       iconUrl: "icons/icon-128.png",
