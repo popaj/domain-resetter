@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("indexedDB").checked = dataTypes.indexedDB;
     document.getElementById("cacheStorage").checked = dataTypes.cacheStorage;
     document.getElementById("sessionStorage").checked = dataTypes.sessionStorage;
+    document.getElementById("serviceWorkers").checked = dataTypes.serviceWorkers;
 
     // Save button
     document.getElementById("save").addEventListener("click", async () => {
@@ -32,11 +33,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             localStorage: document.getElementById("localStorage").checked,
             indexedDB: document.getElementById("indexedDB").checked,
             cacheStorage: document.getElementById("cacheStorage").checked,
-            sessionStorage: document.getElementById("sessionStorage").checked
+            sessionStorage: document.getElementById("sessionStorage").checked,
+            serviceWorkers: document.getElementById("serviceWorkers").checked
           }
         };
-        
-        newSettings.dataTypes.serviceWorkers = dataTypes.serviceWorkers;
 
         await browser.storage.local.set({ settings: newSettings });
         alert("Settings saved!");

@@ -38,5 +38,21 @@ try {
   console.warn("Failed to clear IndexedDB:", e);
 }
 
+// Unregister Service Workers (per-origin, tab-scoped)
+if ('serviceWorker' in navigator && 'getRegistrations' in navigator.serviceWorker) {
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const reg of registrations) {
+      const wasRegistered = !!reg.active || !!reg.installing || !!reg.waiting;
+      if (wasRegistered) {
+        const success = await reg.unregister();
+        console.log(success ? `✅ Unregistered SW: ${reg.scriptURL}` : `⚠️ Failed to unregister SW`);
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to unregister service workers:", e);
+  }
+}
+
 // Send confirmation back to background
 browser.runtime.sendMessage({ action: "storageCleared", origin: location.origin });

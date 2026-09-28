@@ -158,15 +158,10 @@
       <input type="checkbox" id="sessionStorage" />
       <label for="sessionStorage">Session Storage</label>
     </div>
-
-    <!-- Accuracy & transparency -->
-    <p class="info-note">
-      <strong>How clearing works:</strong><br>
-      · Cookies, IndexedDB: Cleared globally for the domain chain (e.g., <em>example.com</em> also clears <em>www.example.com</em>).<br>
-      · HTTP Cache: Cleared globally.<br>
-      · Service Workers: Cleared globally (via Firefox's browsingData).<br>
-      · Cache Storage & SessionStorage: Cleared <em>per-site in the active tab</em> (via Web APIs, not Firefox's browsingData API).
-    </p>
+    <div class="form-group">
+      <input type="checkbox" id="serviceWorkers" />
+      <label for="serviceWorkers">Service Workers (per-site, current tab)</label>
+    </div>
   </section>
 
   <div class="button-row">
