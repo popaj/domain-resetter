@@ -1,11 +1,3 @@
-// Clear for the current origin
-try {
-  // Clear localStorage
-  if (window.localStorage) window.localStorage.clear();
-} catch (e) {
-  console.warn("Failed to clear localStorage:", e);
-}
-
 try {
   // Clear sessionStorage
   if (window.sessionStorage) window.sessionStorage.clear();
