@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e) {}
 
     // Load defaults for fallback & consistency
-    const DEFAULTS = window.DEFAULT_SETTINGS;
+    const DEFAULTS = DEFAULT_SETTINGS;
 
     if (!/^[\w.-]+$/.test(hostname)) {
       console.error("Invalid hostname:", hostname);
@@ -37,12 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const dontAskAgain = document.getElementById("dontAskAgain").checked;
         if (dontAskAgain) {
-          // Merge saved + defaults: prioritize user's choices
           const saved = await browser.storage.local.get("settings");
-          const settings = {
-            ...DEFAULTS,
-            ...(saved.settings || {})
-          };
+          const settings = getSettings(saved.settings);
 
           settings.showConfirmation = false;
           await browser.storage.local.set({ settings });

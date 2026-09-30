@@ -2,15 +2,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     // Load current settings
     const saved = await browser.storage.local.get("settings");
-    const storedSettings = saved.settings || window.DEFAULT_SETTINGS;
+    const settings = getSettings(saved.settings);
 
-    // Deep-merge partial stored data with defaults (e.g., if user upgraded from old version)
-    const settings = {
-      ...window.DEFAULT_SETTINGS,
-      ...(storedSettings || {})
-    };
-
-    const dataTypes = settings.dataTypes || window.DEFAULT_SETTINGS.dataTypes;
+    const dataTypes = settings.dataTypes;
     document.getElementById("showConfirmation").checked = settings.showConfirmation;
     document.getElementById("history").checked = dataTypes.history;
     document.getElementById("cookies").checked = dataTypes.cookies;

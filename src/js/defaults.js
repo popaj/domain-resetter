@@ -12,6 +12,13 @@ const DEFAULT_SETTINGS = Object.freeze({
   }
 });
 
-if (typeof window !== 'undefined') {
-  window.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
+function getSettings(savedSettings) {
+  return {
+    ...DEFAULT_SETTINGS,
+    ...(savedSettings || {}),
+    dataTypes: {
+      ...DEFAULT_SETTINGS.dataTypes,
+      ...(savedSettings?.dataTypes || {})
+    }
+  };
 }

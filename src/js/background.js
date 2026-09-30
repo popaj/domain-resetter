@@ -1,13 +1,13 @@
 // Initialize default settings if not set
-browser.storage.local.get("settings").then((data) => {
-  if (!data.settings) {
-    browser.storage.local.set({
-      settings: {
-        ...window.DEFAULT_SETTINGS
-      }
+browser.storage.local.get("settings").then(async (saved) => {
+  if (!saved.settings) {
+    await browser.storage.local.set({
+      settings: getSettings()
     });
     console.log("Initialized default settings");
   }
+}).catch((e) => {
+  console.error("Failed to initialize settings:", e);
 });
 
 // Update page action visibility and title
@@ -39,7 +39,7 @@ browser.pageAction.onClicked.addListener((tab) => {
     const url = new URL(tab.url);
     const hostname = url.hostname;
     browser.storage.local.get("settings").then((data) => {
-      const settings = data.settings || window.DEFAULT_SETTINGS;
+      const settings = getSettings(data.settings);
       if (settings.showConfirmation) {
         // Get screen dimensions
         browser.windows.getCurrent().then((windowInfo) => {
@@ -111,9 +111,8 @@ function formatDomainList(hostnames) {
 async function deleteHistoryForDomain(hostname) {
   try {
     const savedSettings = await browser.storage.local.get("settings");
-    const settings = savedSettings.settings || window.DEFAULT_SETTINGS;
-    // Use the merged settings.dataTypes directly
-    const types = settings.dataTypes || {};
+    const settings = getSettings(savedSettings.settings);
+    const { dataTypes } = settings;
 
     // 1. Get hostnames to clear (current + tld+1)
     const hostnamesToClear = new Set([hostname]);
@@ -135,11 +134,11 @@ async function deleteHistoryForDomain(hostname) {
     const dataToRemove = {};
     // Note: sessionStorage & cacheStorage are NOT supported by browsingData.remove()
     // They're handled separately in content scripts (only current tab)
-    if (types.cookies) dataToRemove.cookies = true;
-    if (types.cache) dataToRemove.cache = true;
-    if (types.localStorage) dataToRemove.localStorage = true;
+    if (dataTypes.cookies) dataToRemove.cookies = true;
+    if (dataTypes.cache) dataToRemove.cache = true;
+    if (dataTypes.localStorage) dataToRemove.localStorage = true;
     // sessionStorage handled by content script → not in browsingData
-    if (types.indexedDB) dataToRemove.indexedDB = true; // NEW: Add IndexedDB support
+    if (dataTypes.indexedDB) dataToRemove.indexedDB = true; // NEW: Add IndexedDB support
     // cacheStorage handled by content script → not in browsingData
 
     if (Object.keys(dataToRemove).length > 0) {
@@ -157,7 +156,7 @@ async function deleteHistoryForDomain(hostname) {
     }
 
     // 3. Clear history
-    if (types.history) {
+    if (dataTypes.history) {
       try {
         const now = Date.now();
         const pastMonth = now - 30 * 24 * 60 * 60 * 1000;
