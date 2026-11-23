@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "lint": "npm run build && web-ext lint --source-dir dist",
+    "test": "node --test",
     "dev": "npm run build && web-ext run --source-dir dist",
     "package": "npm run lint && web-ext build --source-dir dist --artifacts-dir web-ext-artifacts",
     "release:patch": "npm version patch && npm run package",
