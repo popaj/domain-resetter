@@ -1,3 +1,8 @@
+// Confirmation popup window id -> id of the tab the page action was clicked on
+// Needed because sender.tab in the popup's message is the popup itself
+const popupTargets = new Map();
+browser.windows.onRemoved.addListener((windowId) => popupTargets.delete(windowId));
+
 // Initialize default settings if not set
 browser.storage.local.get("settings").then(async (saved) => {
   if (!saved.settings) {
@@ -57,7 +62,8 @@ browser.pageAction.onClicked.addListener((tab) => {
             left: left,
             top: top,
             focused: true
-          }).then(() => {
+          }).then((popupWindow) => {
+            popupTargets.set(popupWindow.id, tab.id);
             console.log(`Opened popup for ${hostname} at position left=${left}, top=${top}`);
           }).catch((e) => {
             console.error("Error opening popup:", e);
@@ -76,24 +82,37 @@ browser.pageAction.onClicked.addListener((tab) => {
 // Handle messages from popup
 browser.runtime.onMessage.addListener((message, sender) => {
   if (message.action === "deleteHistory" && message.hostname) {
-    // only for safe protocols http(s), avoid for chrome://, file://, about:, etc.
-    let shouldClearStorage = false;
-    
-    try {
-      const url = new URL(sender.tab?.url || "");
-      shouldClearStorage = (
-        message.clearInCurrentTab &&
-        (url.protocol === "http:" || url.protocol === "https:")
-      );
-    } catch (e) {
-      shouldClearStorage = false;
-    }
+    // sender.tab is the confirmation popup, not the page the user acted on.
+    // Resolve the tab that was active when the popup opened.
+    const popupWindowId = sender.tab?.windowId;
+    const targetTabId = popupTargets.get(popupWindowId);
+    popupTargets.delete(popupWindowId);
 
-    if (shouldClearStorage && sender.tab?.id) {
-      browser.tabs.sendMessage(sender.tab.id, { action: "clearStorage" }).catch(e => {
-        console.warn(`Content script failed to clear storage: ${e.message}`);
-      });
-    }
+    const clearTargetTabStorage = async () => {
+      // only for safe protocols http(s), avoid for chrome://, file://, about:, etc.
+      let shouldClearStorage = false;
+      let targetTab = null;
+
+      try {
+        targetTab = await browser.tabs.get(targetTabId);
+        const url = new URL(targetTab.url || "");
+        shouldClearStorage = (
+          message.clearInCurrentTab &&
+          (url.protocol === "http:" || url.protocol === "https:") &&
+          url.hostname === message.hostname // tab may have navigated while popup was open
+        );
+      } catch (e) {
+        shouldClearStorage = false;
+      }
+
+      if (shouldClearStorage && targetTab?.id) {
+        browser.tabs.sendMessage(targetTab.id, { action: "clearStorage" }).catch(e => {
+          console.warn(`Content script failed to clear storage: ${e.message}`);
+        });
+      }
+    };
+
+    if (targetTabId != null) clearTargetTabStorage();
 
     deleteHistoryForDomain(message.hostname);
   } else if (message.action === "storageCleared") {
